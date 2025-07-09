@@ -21,7 +21,7 @@ void insert_rear(coord_t pos) {
 
 void delete_front(void) {
   if (is_empty()) {
-    printf("Snake underflow!\n");
+    printf("snake underflow\n");
     return;
   }
 
@@ -32,6 +32,7 @@ void delete_front(void) {
   }
 }
 
+// debug stuff
 void display(void) {
   if (is_empty()) {
     printf("deque is empty\n");

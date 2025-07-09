@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+#include <string.h>
 
 coord_t snake[SNAKE_LENGTH];
 direction_t snake_direction;
@@ -20,8 +21,8 @@ int rand_food_x;
 int rand_food_y;
 
 void spawn_food(void) {
-  DrawRectangle(rand_food_x * GRID_SIZE + 1, rand_food_y * GRID_SIZE + 1, GRID_SIZE - 2,
-                GRID_SIZE - 2, RED);
+  DrawRectangle(rand_food_x * GRID_SIZE + 1, rand_food_y * GRID_SIZE + 1,
+                GRID_SIZE - 2, GRID_SIZE - 2, RED);
 }
 
 void draw_snake_node(int x, int y, Color color) {
@@ -91,7 +92,7 @@ bool grow_snake(void) {
     break;
   }
 
-  if(check_collision(new_head)) {
+  if (check_collision(new_head)) {
     return false;
   }
 
@@ -133,7 +134,7 @@ void handle_input(void) {
   }
 }
 
-int score;
+int score = 0;
 
 void eat_food(void) {
   // get new rand food x y
@@ -156,8 +157,6 @@ int main(void) {
 
   rand_food_x = GetRandomValue(0, GRID_SIZE - 1);
   rand_food_y = GetRandomValue(0, GRID_SIZE - 1);
-
-  printf("rand x: %d, rand y: %d\n", rand_food_x, rand_food_y);
 
   snake_direction = RIGHT;
 
@@ -184,6 +183,7 @@ int main(void) {
       front = rear = -1;
       snake_direction = RIGHT;
       frame_counter = 0;
+      score = 0;
 
       rand_food_x = GetRandomValue(0, GRID_COLS - 1);
       rand_food_y = GetRandomValue(0, GRID_ROWS - 1);
@@ -197,24 +197,37 @@ int main(void) {
     BeginDrawing();
     ClearBackground(BLACK);
 
+    char score_text[10];
+    char score_str[128];
+
+    strcpy(score_text, "score: ");
+    snprintf(score_str, 128, "%d", score);
+    strcat(score_text, score_str);
+
     if (!game_over) {
       draw_grid();
       draw_snake();
 
-      if(check_collision((coord_t){rand_food_x, rand_food_y})) {
+      if (check_collision((coord_t){rand_food_x, rand_food_y})) {
         eat_food();
       }
+
+      DrawText(score_str, 7, 4, 20, WHITE);
     } else {
       const char *game_over_text = "game over";
       const char *restart_text = "press any key to restart";
 
       int text_width = MeasureText(game_over_text, 40);
       int restart_width = MeasureText(restart_text, 20);
+      int score_width = MeasureText(score_text, 40);
 
       DrawText(game_over_text, (screenWidth - text_width) / 2,
-               screenHeight / 2 - 20, 40, RED);
+               screenHeight / 2 - 30, 40, RED);
       DrawText(restart_text, (screenWidth - restart_width) / 2,
-               screenHeight / 2 + 30, 20, LIGHTGRAY);
+               screenHeight / 2 + 20, 20, LIGHTGRAY);
+      DrawText(score_text, (screenWidth - score_width) / 2,
+               screenHeight / 2 + 90, 40, LIGHTGRAY);
+
     }
 
     EndDrawing();
