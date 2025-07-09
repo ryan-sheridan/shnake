@@ -66,3 +66,4 @@ bool check_collision(coord_t pos) {
 
   return false;
 }
+

@@ -16,12 +16,22 @@ int screenHeight = 600;
 int frame_counter = 0;
 int move_interval = 10;
 
+int rand_food_x;
+int rand_food_y;
+
+void spawn_food(void) {
+  DrawRectangle(rand_food_x * GRID_SIZE + 1, rand_food_y * GRID_SIZE + 1, GRID_SIZE - 2,
+                GRID_SIZE - 2, RED);
+}
+
 void draw_snake_node(int x, int y, Color color) {
   DrawRectangle(x * GRID_SIZE + 1, y * GRID_SIZE + 1, GRID_SIZE - 2,
                 GRID_SIZE - 2, color);
 }
 
 void draw_grid(void) {
+  spawn_food();
+
   for (int x = 0; x <= GRID_COLS; x++) {
     DrawLine(x * GRID_SIZE, 0, x * GRID_SIZE, GRID_ROWS * GRID_SIZE, DARKGRAY);
   }
@@ -63,6 +73,33 @@ bool move_snake(void) {
   return true;
 }
 
+bool grow_snake(void) {
+  coord_t new_head = snake[rear];
+
+  switch (snake_direction) {
+  case (UP):
+    new_head.y--;
+    break;
+  case (DOWN):
+    new_head.y++;
+    break;
+  case (LEFT):
+    new_head.x--;
+    break;
+  case (RIGHT):
+    new_head.x++;
+    break;
+  }
+
+  if(check_collision(new_head)) {
+    return false;
+  }
+
+  insert_rear(new_head);
+
+  return true;
+}
+
 void draw_snake(void) {
   if (is_empty()) {
     return;
@@ -96,10 +133,31 @@ void handle_input(void) {
   }
 }
 
+int score;
+
+void eat_food(void) {
+  // get new rand food x y
+  rand_food_x = GetRandomValue(0, GRID_COLS - 1);
+  rand_food_y = GetRandomValue(0, GRID_ROWS - 1);
+  // spawn food
+  spawn_food();
+  // increase score
+  score++;
+  // increase snake length
+  grow_snake();
+}
+
 int main(void) {
   SetConfigFlags(FLAG_WINDOW_HIGHDPI);
   InitWindow(screenWidth, screenHeight, "shnake");
   SetTargetFPS(60);
+
+  SetRandomSeed((unsigned int)(time(NULL) * 1000 + GetTime() * 1000000));
+
+  rand_food_x = GetRandomValue(0, GRID_SIZE - 1);
+  rand_food_y = GetRandomValue(0, GRID_SIZE - 1);
+
+  printf("rand x: %d, rand y: %d\n", rand_food_x, rand_food_y);
 
   snake_direction = RIGHT;
 
@@ -127,6 +185,9 @@ int main(void) {
       snake_direction = RIGHT;
       frame_counter = 0;
 
+      rand_food_x = GetRandomValue(0, GRID_COLS - 1);
+      rand_food_y = GetRandomValue(0, GRID_ROWS - 1);
+
       insert_rear((coord_t){5, 12});
       insert_rear((coord_t){6, 12});
       insert_rear((coord_t){7, 12});
@@ -139,6 +200,10 @@ int main(void) {
     if (!game_over) {
       draw_grid();
       draw_snake();
+
+      if(check_collision((coord_t){rand_food_x, rand_food_y})) {
+        eat_food();
+      }
     } else {
       const char *game_over_text = "game over";
       const char *restart_text = "press any key to restart";
